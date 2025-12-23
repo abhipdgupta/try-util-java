@@ -18,6 +18,14 @@ A lightweight, zero-dependency Java library for functional-style error handling.
 
 ### Maven
 
+Add following snippet in you ~/.m2/settings.xml
+```xml
+<server>
+    <id>github</id>
+    <username>GITHUB USERNAME</username>
+    <password>NEEDS TO BE FINE GRAINED TOKEN</password>
+</server>
+```
 Add the following dependency to your `pom.xml` file:
 
 ```xml
@@ -35,7 +43,7 @@ And add the GitHub Packages repository to your `pom.xml`:
     <repository>
         <id>github</id>
         <name>GitHub Packages</name>
-        <url>https://maven.pkg.github.com/abhipdgupta/tryutil-java</url>
+        <url>https://maven.pkg.github.com/abhipdgupta/try-util-java</url>
     </repository>
 </repositories>
 ```

@@ -16,6 +16,8 @@
     </distributionManagement>
     <properties>
         <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <spotless.version>3.1.0</spotless.version>
     </properties>
     <dependencies>

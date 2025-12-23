@@ -3,6 +3,7 @@ package io.github.abhipdgupta.tryutil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -160,7 +161,10 @@ class TryTest {
     @Test
     void testGetOnFailure() {
         Try<Integer> failure = Try.of(() -> 1 / 0);
-        assertThrows(TryException.class, failure::get);
+        TryException exception = assertThrows(TryException.class, failure::get);
+
+        assertNotNull(exception.getCause());
+        assertEquals(ArithmeticException.class, exception.getCause().getClass());
     }
 
     @Test
@@ -176,7 +180,9 @@ class TryTest {
     @Test
     void testGetOrElseThrowOnFailure() {
         Try<Integer> failure = Try.of(() -> 1 / 0);
-        assertThrows(ArithmeticException.class, failure::getOrElseThrow);
+        ArithmeticException exception =
+                assertThrows(ArithmeticException.class, failure::getOrElseThrow);
+        assertNotNull(exception);
     }
 
     @Test

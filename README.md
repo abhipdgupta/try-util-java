@@ -1,6 +1,6 @@
 # try-util
 
-[![Java CI with Maven](https://github.com/abhipdgupta/tryutil-java/actions/workflows/maven.yml/badge.svg)](https://github.com/abhipdgupta/tryutil-java/actions/workflows/maven.yml)
+[Java CI with Maven](https://github.com/abhipdgupta/try-util-java/actions/workflows/maven-publish.yml)
 
 A lightweight, zero-dependency Java library for functional-style error handling.
 
@@ -44,7 +44,7 @@ And add the GitHub Packages repository to your `pom.xml`:
 
 ### Creating a `Try`
 
-Use `Try.of()` to wrap a computation that might throw an exception.
+Use `Try.of()` to wrap a computation that might throw an unchecked  exception.
 
 ```java
 // Success case
@@ -53,6 +53,19 @@ Try<Integer> age = Try.of(() -> 25); // Success(25)
 // Failure case
 Try<Integer> error = Try.of(() -> 1 / 0); // Failure(java.lang.ArithmeticException: / by zero)
 ```
+Use `Try.ofChecked` to wrap a computation that throw checked exception
+
+```java
+
+public callsomething() throws Exception{
+    return 11;
+}
+
+Try<Integer> checkedException = Try.ofChecked(()-> callsomething())
+
+```
+
+
 
 ### Transforming Values
 

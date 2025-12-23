@@ -1,113 +1,142 @@
-# Try Utility Library (io.github.abhipdgupta.tryutil)
+# try-util
 
-The Try utility is a functional-style container designed to manage and compose operations that may result in exceptions (Throwable). It promotes declarative, type-safe error handling by eliminating verbose try-catch blocks.
+[![Java CI with Maven](https://github.com/abhipdgupta/tryutil-java/actions/workflows/maven.yml/badge.svg)](https://github.com/abhipdgupta/tryutil-java/actions/workflows/maven.yml)
 
-Inspired by Vavr, a Try is either a **Success** (containing a result value of type T) or a **Failure** (containing a Throwable cause).
+A lightweight, zero-dependency Java library for functional-style error handling.
 
----
+`try-util` provides a `Try` monad to encapsulate computations that may result in an exception, allowing you to write cleaner, more composable, and more robust code. Instead of using verbose `try-catch` blocks, you can chain operations, transform values, and handle failures in a declarative way.
 
-## 1. Core Classes and State
+## Features
 
-| Class         | Description                                                       |
-|---------------|-------------------------------------------------------------------|
-| `Try<T>`      | The abstract base container (Success or Failure).                 |
-| `Success<T>`  | Holds the result value.                                           |
-| `Failure<T>`  | Holds the Throwable cause.                                        |
-| `TryException`| A RuntimeException thrown by `get()` to wrap the underlying cause. |
+- **Encapsulate Success or Failure:** A `Try` is either a `Success` holding a result or a `Failure` holding an exception.
+- **Functional Composition:** Chain operations with `map` and `flatMap`.
+- **Flexible Error Handling:** Recover from failures with `recover` or provide default values with `getOrElse`.
+- **Side Effects:** Use `onSuccess` and `onFailure` for logging or other side effects.
+- **Easy Unwrapping:** Get the value or throw an exception with `get` and `getOrElseThrow`.
 
----
+## Getting Started
 
-## 2. Creation
+### Maven
 
-The primary entry point is wrapping a Supplier that might throw an exception.
+Add the following dependency to your `pom.xml` file:
 
-### of (Supplier)
-
-Wraps a computation, yielding a Success on normal completion or a Failure if any Throwable is caught.
-
-```java
-// Creates Success("10")
-Try<String> success = Try.of(() -> String.valueOf(10));
-
-// Creates Failure(ArithmeticException)
-Try<Integer> failure = Try.of(() -> 10 / 0);
+```xml
+<dependency>
+    <groupId>io.github.abhipdgupta</groupId>
+    <artifactId>try-util</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
 
----
+And add the GitHub Packages repository to your `pom.xml`:
 
-## 3. Transformations and Composition
-
-These methods enable safe chaining. They only execute on Success; if a Failure is encountered, the chain skips the transformation methods and preserves the Failure. Any exception thrown inside map or flatMap results in a new Failure.
-
-### map (Function)
-
-Transforms the successful value T into a new value U.
-
-### flatMap (Function)
-
-Transforms the successful value T into a new Try\<U\>, used for sequencing Try-returning operations (monadic bind).
-
-```java
-Try<Integer> result = Try.of(() -> "100")
-        .map(Integer::parseInt)
-        .flatMap(i -> Try.of(() -> String.format("%d squared is %d", i, i * i)));
+```xml
+<repositories>
+    <repository>
+        <id>github</id>
+        <name>GitHub Packages</name>
+        <url>https://maven.pkg.github.com/abhipdgupta/tryutil-java</url>
+    </repository>
+</repositories>
 ```
 
+## Usage
 
-## 4. Error Handling and Recovery
+### Creating a `Try`
 
-### getOrElse (T other)
-
-Returns the value if Success, otherwise returns a default value.
-
-### recover (Function<Throwable, T>)
-
-Recovers from **any** Failure by applying the function to the Throwable, yielding a new Success with the recovery value.
-
-### recover (Class<E>, Function<E, T>)
-
-Recovers selectively from a **specific Exception type**. Non-matching Failures are passed through.
+Use `Try.of()` to wrap a computation that might throw an exception.
 
 ```java
-// 1. Fallback value
-int value = Try.of(() -> 1 / 0).getOrElse(-1); // -1
+// Success case
+Try<Integer> age = Try.of(() -> 25); // Success(25)
 
-// 2. General recovery
-Try<String> recovered = Try.of(() -> apiCall())
-.recover(t -> "Fallback Data"); // Success("Fallback Data")
-
-// 3. Selective recovery
-Try<String> result = Try.of(() -> { throw new TimeoutException(); })
-.recover(IOException.class, e -> "IO Error Fallback") // Skipped
-.recover(TimeoutException.class, e -> "Timeout Fallback"); // Success("Timeout Fallback")
+// Failure case
+Try<Integer> error = Try.of(() -> 1 / 0); // Failure(java.lang.ArithmeticException: / by zero)
 ```
 
----
+### Transforming Values
 
-## 5. Side Effects and Unwrapping
-
-### onSuccess (Consumer<T>)
-
-Performs a side-effect action on the value if Success. Returns this.
-
-### onFailure (Consumer<Throwable>)
-
-Performs a side-effect action on the Throwable if Failure. Returns this.
-
-### getOrElseThrow ()
-
-Returns the value if Success, otherwise throws the **original Throwable**.
-
-### getOrElseThrow (Function<Throwable, X>)
-
-Returns the value if Success, otherwise throws a custom Exception (X) mapped from the original Throwable.
+Use `map` to transform the value inside a `Success`. If the `Try` is a `Failure`, `map` does nothing.
 
 ```java
-// Log and then throw if failed
-String data = Try.of(() -> executeTask())
-.onFailure(t -> System.err.println("Task failed: " + t.getMessage()))
-.getOrElseThrow(cause -> new TaskException("Critical failure", cause));
-
-// Simple unwrap (must handle the checked exception)
-String content = Try.of(() -> readFile()).getOrElseThrow();
+Try<String> message = age.map(a -> "Age is " + a); // Success("Age is 25")
+Try<String> errorMessage = error.map(a -> "Age is " + a); // Failure(java.lang.ArithmeticException: / by zero)
 ```
+
+### Chaining Operations
+
+Use `flatMap` to chain operations that return a `Try`.
+
+```java
+Try<Double> result = Try.of(() -> "123.45")
+    .map(Double::parseDouble)
+    .flatMap(d -> Try.of(() -> d * 2)); // Success(246.9)
+```
+
+### Handling Failures
+
+Use `getOrElse` to provide a default value in case of a failure.
+
+```java
+Integer defaultAge = error.getOrElse(30); // 30
+```
+
+Use `recover` to handle an exception and return a `Success`.
+
+```java
+Try<Integer> recovered = error.recover(throwable -> {
+    System.out.println("Recovered from: " + throwable.getMessage());
+    return 0;
+}); // Success(0)
+```
+
+You can also recover from specific exception types:
+
+```java
+Try<Integer> recoveredSpecific = Try.of(() -> {
+        throw new java.io.IOException();
+    })
+    .recover(java.io.IOException.class, e -> 0)
+    .recover(Exception.class, e -> -1); // Recovers with 0
+```
+
+### Getting the Value
+
+Use `get()` to get the value. If the `Try` is a `Failure`, it throws a `TryException`.
+
+```java
+Integer myAge = age.get(); // 25
+try {
+    Integer errorAge = error.get();
+} catch (TryException e) {
+    System.out.println(e.getCause()); // java.lang.ArithmeticException: / by zero
+}
+```
+
+Use `getOrElseThrow()` to re-throw the original exception.
+
+```java
+try {
+    Integer value = error.getOrElseThrow();
+} catch (ArithmeticException e) {
+    // Handle the original exception
+}
+```
+
+## Building the Project
+
+To build the project and run the tests, you need to have Java 21 and Maven installed.
+
+Clone the repository and run the following command:
+
+```bash
+mvn clean install
+```
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+## License
+
+This project is licensed under the MIT License.
